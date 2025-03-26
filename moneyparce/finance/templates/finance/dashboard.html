@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Welcome, {{ user.username }}</h2>
+    <p>Your personalized finance dashboard.</p>
+
+    <div class="row">
+        <div class="col-md-6">
+            <h4>Your Recent Transactions</h4>
+            <ul>
+                {% for transaction in transactions %}
+                    <li>{{ transaction.description }} - ${{ transaction.amount }}</li>
+                {% empty %}
+                    <li>No transactions yet.</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="col-md-6">
+            <h4>Spending Summary</h4>
+            <p>Graph or pie chart will go here.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

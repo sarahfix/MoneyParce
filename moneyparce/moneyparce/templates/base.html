@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+{% load static %}
   <head>
     <title>{{ template_data.title }}</title>
     <link href=
@@ -14,17 +15,114 @@
     <script src=
       "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"crossorigin="anonymous">
         </script>
+      <link rel="stylesheet" type="text/css"
+          href="{% static 'css/style.css' %}">
     <meta name="viewport" content="width=device-width,
       initial-scale=1" />
   </head>
   <body>
     <!-- Header -->
+    <nav class="p-3 navbar navbar-dark bg-dark
+         navbar-expand-lg">
+      <div class="container">
+        <a class="navbar-brand"
+           href="{% url 'home.index' %}">
+          <img src="{% static 'img/logo.png' %}" alt="logo"
+               height="40" />
+        </a>
+        <button class="navbar-toggler" type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarNavAltMarkup"
+                aria-controls="navbarNavAltMarkup"
+                aria-expanded="false"
+                aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse"
+             id="navbarNavAltMarkup">
+            <div class="navbar-nav ms-auto navbar-ml">
+            <a class="nav-link"
+               href="{% url 'home.about' %}">About</a>
+
+                <div class="vr bg-white mx-2 d-none
+              d-lg-block"></div>
+   {% if user.is_authenticated %}
+            <a class="nav-link"
+              href="{% url 'finance:dashboard' %}">Dashboard</a>
+            <a class="nav-link"
+              href="{% url 'accounts.logout' %}">Logout ({{user.username }})</a>
+            {% else %}
+
+    <a class="nav-link"
+              href="{% url 'accounts.login' %}">Login</a>
+            <a class="nav-link"
+              href="{% url 'accounts.signup' %}">Sign Up
+            </a>
+            {% endif %}
+
+
+          </div>
+        </div>
+      </div>
+    </nav>
+
     <!-- Header -->
     <div>
       {% block content %}
       {% endblock content %}
     </div>
     <!-- Footer -->
+    <section class="p-3 ms-footer d-none d-md-block">
+      <div class="container">
+        <div class="row mt-3 text-white">
+          <div class="col-md-6 col-lg-6 col-xl-6
+               mx-auto mb-4">
+            <b>MONEYPARCE</b>
+            <hr />
+            <p>
+              MoneyParce is a web application designed to help users efficiently
+                track their income and expenses, analyze spending patterns, and
+                receive personalized financial insights. By integrating banking
+                data with AI-driven analysis and intuitive visualizations,
+                MoneyParce empowers users to take control of their finances and
+                make smarter, informed decisions about their money.
+            </p>
+          </div>
+          <div class="col-md-3 col-lg-3 col-xl-3
+               mx-auto mb-4">
+            <b>LINKS</b>
+            <hr />
+              <p><a class="nav-link"
+              href="{% url 'home.about' %}">
+              About
+            </a></p>
+          </div>
+          <div class="col-md-3 col-lg-3 col-xl-3 mx-auto
+               mb-4">
+            <b>CONTACT</b>
+            <hr />
+            <p><i class="fas fa-home me-2"></i>
+              Atlanta, GA
+            </p>
+            <p><i class="fas fa-envelope me-2"></i>
+              info@moneyparce.com
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="p-3 ms-footer-bottom bg-dark">
+      <div class="container d-flex justify-content-between">
+        <div class="me-5 text-white">
+          <span>DESIGNED AND CODED BY BRANT, MIMI, SARAH, LULU, AND ANJALI</a>
+          </span>
+        </div>
+        <div class="text-white">
+          <span>© Copyright - 2024</span>
+        </div>
+      </div>
+    </section>
+
     <!-- Footer -->
   </body>
 </html>

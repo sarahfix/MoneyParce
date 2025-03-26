@@ -1,9 +1,33 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>About page</title>
-</head>
-<body>
-  <h1>Welcome to the About Page</h1>
-</body>
-</html>
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<div class="p-3">
+  <div class="container">
+    <div class="row mt-3">
+      <div class="col-md-6 mx-auto mb-3">
+        <h2>About MoneyParce</h2>
+        <hr />
+        <p>
+          MoneyParce is a web application designed to help users efficiently track their
+            income and expenses, analyze spending patterns, and receive personalized financial
+            insights. By integrating banking data with AI-driven analysis and intuitive
+            visualizations, MoneyParce empowers users to take control of their finances
+            and make smarter, informed decisions about their money.
+        </p>
+        <p>
+          With features like automatic expense tracking via the Plaid API, budgeting tools,
+            and interactive AI-driven recommendations, MoneyParce simplifies money management
+            and helps users make smarter financial choices. The platform also offers detailed
+            financial reports and visualizations that make it easy to understand spending
+            habits and adjust behaviors for better financial health.
+        </p>
+      </div>
+      <div class="col-md-6 mx-auto mb-3 text-center">
+        <img src="{% static 'img/about.jpg' %}"
+             class="max-width-100"
+             alt="about" />
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

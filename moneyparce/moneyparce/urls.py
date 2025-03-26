@@ -20,4 +20,6 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('home.urls')),
+    path('accounts/', include('accounts.urls')),  # This includes login, logout, and password reset
+    path('finance/', include('finance.urls')),
 ]
