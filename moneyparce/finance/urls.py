@@ -5,5 +5,5 @@ app_name = 'finance'
 
 urlpatterns = [
     path('dashboard/', dashboard, name='dashboard'),
-    path('set-budget/', set_budget, name='set_budget'),  # Add this line
+    path('set-budget/', set_budget, name='set_budget'),  # Ensure this line exists
 ]

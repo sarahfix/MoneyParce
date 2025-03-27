@@ -52,14 +52,35 @@
         <button type="submit" class="btn btn-success mt-3">Apply Filters</button>
     </form>
 
+    <!-- Space between Apply Filters and Budget Overview -->
+    <div style="margin-top: 20px;"></div>
+
+    <!-- Display the user's budget information -->
+    {% if monthly_budget %}
+    <div class="budget-info">
+        <h3>Your Budget Overview</h3>
+        <p>Your current monthly budget: ${{ monthly_budget }}</p>
+        <p>Max amount you should have spent this month so far: ${{ target_spending|floatformat:2 }}</p>
+        <p>Your current spending this month: ${{ monthly_spending|floatformat:2 }}</p>
+        <p>{{ budget_status }}</p>
+    </div>
+    {% else %}
+    <div class="budget-info">
+        <h3>You haven't set a budget yet.</h3>
+    </div>
+    {% endif %}
+
+    <!-- Space between Budget Overview and Recent Transactions -->
+    <div style="margin-bottom: 20px;"></div>
+
     <div class="row mt-4">
         <div class="col-md-6">
             <h4>Your Recent Transactions</h4>
             <ul>
                 {% for transaction in transactions %}
-                    <li>{{ transaction.description }} - ${{ transaction.amount }} ({{ transaction.fake_date }})</li>
+                <li>{{ transaction.description }} - ${{ transaction.amount }} ({{ transaction.fake_date }})</li>
                 {% empty %}
-                    <li>No transactions yet.</li>
+                <li>No transactions yet.</li>
                 {% endfor %}
             </ul>
         </div>
@@ -92,7 +113,7 @@
                 <div class="form-group">
                     <label for="recurring">Recurring:</label>
                     <select name="recurring" class="form-control" required>
-                        <option value="none">None</option>
+                        <option value="one_time">None</option>
                         <option value="weekly">Weekly</option>
                         <option value="biweekly">Biweekly</option>
                         <option value="monthly">Monthly</option>
@@ -105,20 +126,19 @@
     </div>
 </div>
 
- <!-- Budget Setting Section -->
- <form method="POST">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="monthly_budget">Maximum Monthly Budget ($):</label>
-            <input type="number" step="0.01" name="monthly_budget" class="form-control" id="monthly_budget" value="{{ form.monthly_budget.value }}" required>
-        </div>
+<!-- Budget Setting Section -->
+<form method="POST" action="{% url 'finance:set_budget' %}">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="amount">Maximum Monthly Budget ($):</label>
+        <input type="number" step="0.01" name="amount" class="form-control" id="amount" value="{{ form.amount.value }}" required>
+    </div>
 
-        <div class="form-group">
-            <label for="description">Description (Optional):</label>
-            <textarea name="description" class="form-control" id="description" rows="3">{{ form.description.value }}</textarea>
-        </div>
+    <div class="form-group">
+        <label for="description">Description (Optional):</label>
+        <textarea name="description" class="form-control" id="description" rows="3">{{ form.description.value }}</textarea>
+    </div>
 
-        <button type="submit" class="btn btn-primary">Set Budget</button>
-    </form>
+    <button type="submit" class="btn btn-primary">Set Budget</button>
+</form>
 {% endblock %}
-

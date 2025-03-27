@@ -10,9 +10,9 @@ class TransactionForm(forms.ModelForm):
 class BudgetForm(forms.ModelForm):
     class Meta:
         model = Budget
-        fields = ['monthly_budget', 'description']  # Adding description field
+        fields = ['amount', 'description']  # Use 'amount' instead of 'monthly_budget'
 
-    monthly_budget = forms.DecimalField(
+    amount = forms.DecimalField(  # Change this to 'amount'
         max_digits=10,
         decimal_places=2,
         required=True,
@@ -20,6 +20,6 @@ class BudgetForm(forms.ModelForm):
     )
 
     description = forms.CharField(
-        required=False,  # Description is optional
+        required=False,
         widget=forms.Textarea(attrs={'placeholder': 'Optional description for your budget'})
     )
