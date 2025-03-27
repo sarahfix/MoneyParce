@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils.timezone import now
 from datetime import timedelta
+from django.db import models
 
 
 class Transaction(models.Model):
@@ -60,3 +61,10 @@ class Transaction(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.category} - ${self.amount} on {self.fake_date}"
 
+class Budget(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # Link to the User model
+    amount = models.DecimalField(max_digits=10, decimal_places=2)  # Monthly budget amount
+    created_at = models.DateTimeField(auto_now_add=True)  # Timestamp when the budget is created
+
+    def __str__(self):
+        return f"{self.user.username}'s budget: ${self.amount} per month"

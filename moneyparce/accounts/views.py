@@ -3,6 +3,9 @@ from django.contrib.auth import login as auth_login, authenticate, logout as aut
 from .forms import CustomUserCreationForm, CustomErrorList
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
+from django.contrib import messages
+from django.contrib.auth.forms import UserCreationForm
 
 
 @login_required
@@ -47,5 +50,14 @@ def signup(request):
             template_data['form'] = form
             return render(request, 'accounts/signup.html',
                           {'template_data': template_data})
+
+@login_required
+def delete_account(request):
+    if request.method == "POST":
+        user = request.user
+        user.delete()  # Deletes the authenticated user
+        return redirect("home.index")  # Redirect to home after deletion
+
+    return render(request, "accounts/delete_account.html")  # Show confirmation page
 
 # Create your views here.

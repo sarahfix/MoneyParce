@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from datetime import timedelta, date
 from .models import Transaction
-from .forms import TransactionForm
+from .forms import TransactionForm, BudgetForm
 
 @login_required
 def dashboard(request):
@@ -109,3 +109,17 @@ def dashboard(request):
         'month_filter': month_filter,
         'category_filter': category_filter
     })
+
+@login_required
+def set_budget(request):
+    if request.method == 'POST':
+        form = BudgetForm(request.POST)
+        if form.is_valid():
+            budget = form.save(commit=False)
+            budget.user = request.user  # Assign the logged-in user to the budget
+            budget.save()  # Save the budget for the user
+            return redirect('finance:dashboard')  # Redirect to the dashboard
+    else:
+        form = BudgetForm()  # Create an empty form for GET request
+
+    return render(request, 'finance/set_budget.html', {'form': form})
