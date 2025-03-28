@@ -6,6 +6,43 @@ from .models import Transaction, Budget
 from .forms import TransactionForm, BudgetForm
 from decimal import Decimal
 from django.db import models
+from django.utils.timezone import now, timedelta
+from django.db.models import Sum
+
+def insights(request):
+    today = now().date()
+    past_week = today - timedelta(days=6)  # Ensure past 7 full days
+
+    # Get all one-time purchases (excluding income), using fake_date
+    one_time_purchases = Transaction.objects.filter(
+        user=request.user, fake_date__gte=past_week, recurring="one_time"
+    ).exclude(category="income")
+
+    # Calculate Spend Days (using fake_date)
+    spend_days = {txn.fake_date for txn in one_time_purchases}
+
+    # Generate all past week days & determine no-spend days
+    all_days = {past_week + timedelta(days=i) for i in range(7)}
+    no_spend_days = sorted(all_days - spend_days)
+
+    # Format dates as "Day, Month Date"
+    formatted_no_spend_days = [day.strftime("%A, %B %d") for day in no_spend_days]
+    formatted_spend_days = [day.strftime("%A, %B %d") for day in spend_days]
+
+    # Get Small Purchases (<$15, excluding income), using fake_date
+    small_purchases = one_time_purchases.filter(amount__lt=15)
+    small_purchases_count = small_purchases.count()
+    small_purchases_total = small_purchases.aggregate(total=Sum("amount"))["total"] or 0
+    small_purchases_list = small_purchases.values_list("description", flat=True)
+
+    context = {
+        "no_spend_days": formatted_no_spend_days,  # Formatted no-spend days
+        "spend_days": formatted_spend_days,  # Formatted spend days
+        "small_purchases_count": small_purchases_count,
+        "small_purchases_total": small_purchases_total,
+        "small_purchases_list": small_purchases_list,
+    }
+    return render(request, "finance/insights.html", context)
 
 '''@login_required
 def dashboard(request):
