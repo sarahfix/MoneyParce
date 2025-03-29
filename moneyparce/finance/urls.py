@@ -8,3 +8,4 @@ urlpatterns = [
     path('set-budget/', set_budget, name='set_budget'),
     path('insights/', insights, name='insights'),# Ensure this line exists
 ]
+

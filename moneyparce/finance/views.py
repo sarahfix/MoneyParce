@@ -9,6 +9,7 @@ from django.db import models
 from django.utils.timezone import now, timedelta
 from django.db.models import Sum
 
+
 def insights(request):
     today = now().date()
     past_week = today - timedelta(days=6)  # Ensure past 7 full days
