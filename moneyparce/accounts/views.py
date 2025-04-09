@@ -1,11 +1,44 @@
+from django.contrib.auth import get_user_model
+from django.contrib import messages
+from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render
 from django.contrib.auth import login as auth_login, authenticate, logout as auth_logout
 from .forms import CustomUserCreationForm, CustomErrorList
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import get_user_model
-from django.contrib import messages
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.models import User
+from django.shortcuts import render, redirect
+from django.contrib.auth import logout as auth_logout
+
+def reset_password(request):
+    template_data = {}
+    template_data['title'] = 'Reset Password'
+
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        new_password = request.POST.get('new_password')
+
+        try:
+            # Fetch user by username
+            user = User.objects.get(username=username)
+            user.set_password(new_password)  # Set new password
+            user.save()
+
+            # Optionally, log out the user for security purposes
+            auth_logout(request)
+
+            template_data['success'] = 'Password has been updated successfully.'
+            return redirect('accounts.login')  # Redirect to login after reset
+
+        except User.DoesNotExist:
+            template_data['error'] = 'The username provided does not exist.'
+            return render(request, 'accounts/reset_password.html', {'template_data': template_data})
+
+    # Ensure that we return a response for GET requests
+    return render(request, 'accounts/reset_password.html', {'template_data': template_data})
+
 
 
 @login_required

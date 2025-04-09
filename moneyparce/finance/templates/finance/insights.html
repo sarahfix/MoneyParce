@@ -1,27 +1,179 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h2>No-Spend Days in the Past Week</h2>
-<ul>
-    {% for day in no_spend_days %}
-        <li style="color: green;">{{ day }}</li>  <!-- Highlight no-spend days in green -->
-    {% endfor %}
-</ul>
+<div id="pdf-export-wrapper">
+  <div class="container mt-4">
+    <h2>Spending Insights</h2>
+    <button id="export-pdf-btn" class="btn btn-primary">
+        <i class="fas fa-file-pdf"></i> Export PDF
+    </button>
 
-<h2>Spend Days in the Past Week</h2>
-<ul>
-    {% for day in spend_days %}
-        <li style="color: #d36161;">{{ day }}</li>  <!-- Highlight spend days in red -->
-    {% endfor %}
-</ul>
+    <div class="row">
+      <!-- Left Column - Chart -->
+      <div class="col-md-6">
+        <div class="chart-container" id="smallPurchasesChart"></div>
+      </div>
 
-<h2>Small Purchases</h2>
-<p>Total spent on small purchases: ${{ small_purchases_total }}</p>
-<p>Number of small purchases: {{ small_purchases_count }}</p>
-<ul>
-    {% for desc in small_purchases_list %}
-        <li>{{ desc }}</li>  <!-- List small purchase descriptions -->
-    {% endfor %}
-</ul>
+      <!-- Right Column - Spend Days Info -->
+      <div class="col-md-6">
+        <div class="card mb-4">
+          <div class="card-body">
+            <h3 class="card-title">No-Spend Days</h3>
+            <ul class="list-group">
+              {% for day in no_spend_days %}
+              <li class="list-group-item list-group-item-success">{{ day }}</li>
+              {% empty %}
+              <li class="list-group-item">Every day had spending</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
 
+        <div class="card">
+          <div class="card-body">
+            <h3 class="card-title">Spend Days</h3>
+            <ul class="list-group">
+              {% for day in spend_days %}
+              <li class="list-group-item list-group-item-warning">{{ day }}</li>
+              {% empty %}
+              <li class="list-group-item">No spending recorded</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h3 class="card-title">Small Purchases Summary</h3>
+          <div class="alert alert-info">
+            <p><strong>Total small purchases:</strong> {{ small_purchases_count }}</p>
+            <p><strong>Total spent:</strong> ${{ small_purchases_total|floatformat:2 }}</p>
+          </div>
+
+          {% if small_purchases_list %}
+          <h4>Recent Small Purchases</h4>
+          <ul class="list-group">
+            {% for desc in small_purchases_list %}
+            <li class="list-group-item">{{ desc }}</li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Google Charts -->
+{% if small_purchases_chart_data|length > 1 %}
+<script type="text/javascript">
+  var spendingChart = null;
+
+  google.charts.load('current', { packages: ['corechart'] });
+  google.charts.setOnLoadCallback(drawChart);
+
+  function drawChart() {
+    const data = google.visualization.arrayToDataTable({{ small_purchases_chart_data|safe }});
+
+    const options = {
+      title: 'Small Purchases (<$15) by Day',
+      hAxis: { title: 'Date' },
+      vAxis: {
+        title: 'Amount',
+        minValue: 0,
+        viewWindow: { min: 0 }
+      },
+      backgroundColor: 'transparent',
+      chartArea: { width: '85%', height: '70%' },
+      seriesType: 'bars',
+      series: {
+        0: { color: '#6c757d' },
+        1: { type: 'line', color: '#d36161' }
+      }
+    };
+
+    spendingChart = new google.visualization.ComboChart(document.getElementById('smallPurchasesChart'));
+    spendingChart.draw(data, options);
+  }
+
+  window.addEventListener('resize', () => {
+    if (spendingChart) drawChart();
+  });
+</script>
+{% else %}
+<script>
+  document.getElementById('smallPurchasesChart').innerHTML =
+    '<div class="alert alert-info">No small purchases data available</div>';
+</script>
+{% endif %}
+
+<!-- PDF Export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script>
+document.getElementById('export-pdf-btn').addEventListener('click', async function () {
+  const btn = this;
+  const originalBtnText = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
+  btn.disabled = true;
+
+  try {
+    const { jsPDF } = window.jspdf;
+
+    // Wait for chart to render as image
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    const chartContainer = document.getElementById('smallPurchasesChart');
+    const originalChartHTML = chartContainer.innerHTML;
+
+    if (spendingChart) {
+      const chartImgUri = spendingChart.getImageURI();
+      const img = new Image();
+      img.src = chartImgUri;
+      img.style.width = '100%';
+      img.style.height = 'auto';
+      chartContainer.innerHTML = '';
+      chartContainer.appendChild(img);
+
+      await new Promise(resolve => {
+        img.onload = resolve;
+        setTimeout(resolve, 300);
+      });
+    }
+
+    const wrapper = document.getElementById('pdf-export-wrapper');
+
+    const canvas = await html2canvas(wrapper, {
+      scale: 2,
+      scrollY: -window.scrollY,
+      useCORS: true,
+      backgroundColor: '#ffffff'
+    });
+
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const imgWidth = 210;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+    pdf.save('spending-insights-{{ today|date:"Y-m-d" }}.pdf');
+
+    // Restore original chart
+    chartContainer.innerHTML = originalChartHTML;
+    drawChart();
+  } catch (error) {
+    console.error('PDF generation error:', error);
+    alert('Failed to generate PDF. Please try again.');
+  } finally {
+    btn.innerHTML = originalBtnText;
+    btn.disabled = false;
+  }
+});
+</script>
 {% endblock %}
