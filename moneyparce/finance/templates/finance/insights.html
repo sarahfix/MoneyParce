@@ -1,27 +1,37 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h2>No-Spend Days in the Past Week</h2>
-<ul>
-    {% for day in no_spend_days %}
-        <li style="color: green;">{{ day }}</li>  <!-- Highlight no-spend days in green -->
-    {% endfor %}
-</ul>
+    <div class="container mt-4 mx-3 mb-4">
+        <div class = "row mt-4">
+            <div class = "col-md-6">
+                <h2>No-Spend Days in the Past Week</h2>
+                    <div class="p-3 border rounded bg-light">
+                        <ul>
+                            {% for day in no_spend_days %}
+                                <li style="color: green;">{{ day }}</li>  <!-- Highlight no-spend days in green -->
+                            {% endfor %}
+                        </ul>
+                    </div>
 
-<h2>Spend Days in the Past Week</h2>
-<ul>
-    {% for day in spend_days %}
-        <li style="color: #d36161;">{{ day }}</li>  <!-- Highlight spend days in red -->
-    {% endfor %}
-</ul>
-
-<h2>Small Purchases</h2>
-<p>Total spent on small purchases: ${{ small_purchases_total }}</p>
-<p>Number of small purchases: {{ small_purchases_count }}</p>
-<ul>
-    {% for desc in small_purchases_list %}
-        <li>{{ desc }}</li>  <!-- List small purchase descriptions -->
-    {% endfor %}
-</ul>
-
+                <h2>Spend Days in the Past Week</h2>
+                    <div class="p-3 border rounded bg-light">
+                        <ul>
+                            {% for day in spend_days %}
+                                <li style="color: #d36161;">{{ day }}</li>  <!-- Highlight spend days in red -->
+                            {% endfor %}
+                        </ul>
+                    </div>
+            </div>
+            <div class = "col-md-6">
+                <h2>Small Purchases</h2>
+                <p>Total spent on small purchases: ${{ small_purchases_total }}</p>
+                <p>Number of small purchases: {{ small_purchases_count }}</p>
+                <ul>
+                    {% for desc in small_purchases_list %}
+                        <li>{{ desc }}</li>  <!-- List small purchase descriptions -->
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
 {% endblock %}
