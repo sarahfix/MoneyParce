@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4 mb-5 d-flex justify-content-center">
+  <div class="w-100" style="max-width: 800px;">
+
+    <div class="p-4 border rounded bg-light shadow-sm">
+      <h3 class="text-center">💬 Ask the MoneyParce Chatbot</h3>
+      <form id="chatForm">
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="chatInput">Your Message</label>
+          <textarea id="chatInput" class="form-control" rows="4"
+            placeholder="Ask about your spending, saving, or budgeting..."></textarea>
+        </div>
+        <button type="button" class="btn btn-success mt-3 w-100" onclick="sendMessage()">Send</button>
+      </form>
+    </div>
+
+    <div class="p-4 border rounded bg-white mt-4" id="chatLog" style="min-height: 200px;">
+      <p class="text-muted text-center">Start chatting to see responses here.</p>
+    </div>
+
+  </div>
+</div>
+
+
+
+<script>
+
+
+function formatMarkdown(text) {
+    // Convert **bold** to <strong>
+    text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+
+    // Convert *italics* to <em>
+    text = text.replace(/\*(.*?)\*/g, "<em>$1</em>");
+
+    // Break into lines and format
+    const lines = text.split('\n');
+    let formatted = '';
+    let inList = false;
+
+    lines.forEach(line => {
+        const trimmed = line.trim();
+        if (!trimmed) return; // skip blank lines
+
+        if (trimmed.startsWith('* ')) {
+            if (!inList) {
+                formatted += '<ul>';
+                inList = true;
+            }
+            formatted += `<li>${trimmed.substring(2)}</li>`;
+        } else {
+            if (inList) {
+                formatted += '</ul>';
+                inList = false;
+            }
+            formatted += `<p>${trimmed}</p>`;
+        }
+    });
+
+    if (inList) {
+        formatted += '</ul>';
+    }
+
+    return formatted;
+}
+
+function getCSRFToken() {
+    return document.querySelector('[name=csrfmiddlewaretoken]').value;
+}
+
+async function sendMessage() {
+    const input = document.getElementById("chatInput").value.trim();
+    if (!input) return;
+
+    const chatLog = document.getElementById("chatLog");
+    chatLog.innerHTML += `<p><strong>You:</strong> ${input}</p>`;
+
+    const response = await fetch("/finance/chatbot/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCSRFToken()
+        },
+        body: JSON.stringify({ message: input })
+    });
+
+    const data = await response.json();
+    if (data.response) {
+        const botReply = `<div><strong>FinanceBot:</strong><br>${formatMarkdown(data.response)}</div>`;
+        chatLog.innerHTML += botReply;
+    } else if (data.error) {
+        chatLog.innerHTML += `<p class="text-danger"><strong>Error:</strong> ${data.error}</p>`;
+    }
+
+    document.getElementById("chatInput").value = "";
+    chatLog.scrollTop = chatLog.scrollHeight;
+}
+
+
+
+</script>
+{% endblock %}
+

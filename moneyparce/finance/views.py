@@ -8,6 +8,71 @@ from decimal import Decimal
 from django.db import models
 from django.utils.timezone import now, timedelta
 from django.db.models import Sum
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import json
+import google.generativeai as genai
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+
+@login_required
+def chatbot_page(request):
+    return render(request, "finance/chatbot.html")
+
+genai.configure(api_key="AIzaSyDVfBDMrkBV0WhZkhz6XVZgFJAq20kgpOE")
+
+@csrf_exempt
+@login_required
+def chatbot_response(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            user_input = data.get('message', '')
+            user = request.user
+
+            # ✅ 1. Gather user data (you already use this logic in dashboard & insights)
+            today = timezone.now().date()
+            current_month = today.month
+            current_year = today.year
+
+            # Budget
+            budget = Budget.objects.filter(user=user).first()
+            budget_amount = budget.amount if budget else None
+
+            # Spending
+            transactions = Transaction.objects.filter(user=user, fake_date__year=current_year, fake_date__month=current_month)
+            monthly_spending = transactions.exclude(category="income").aggregate(total=Sum('amount'))["total"] or 0
+
+            # No-spend days in last 7 days
+            past_week = today - timedelta(days=6)
+            one_time_purchases = transactions.filter(fake_date__gte=past_week, recurring="one_time").exclude(category="income")
+            spend_days = {txn.fake_date for txn in one_time_purchases}
+            all_days = {past_week + timedelta(days=i) for i in range(7)}
+            no_spend_days = sorted(all_days - spend_days)
+
+
+            context_prompt = f"""
+You are a personal finance assistant for a user.
+This user's monthly budget is ${budget_amount or 'not set'}.
+So far this month, they have spent ${monthly_spending:.2f}.
+
+In the last 7 days, they had {len(no_spend_days)} no-spend day(s).
+
+Their question is: "{user_input}"
+
+Give helpful and encouraging advice based on their data.
+"""
+
+            model = genai.GenerativeModel('models/gemini-1.5-pro-latest')
+            response = model.generate_content(context_prompt)
+
+            return JsonResponse({'response': response.text})
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
 
 
 def insights(request):
